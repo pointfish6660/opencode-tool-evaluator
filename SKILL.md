@@ -11,7 +11,7 @@ description: |
 
 A consumer-reports-style evaluator for AI development tools hosted on GitHub. Given a repository URL, the skill produces a 6-dimension weighted score (0-100) and a clear Install / Hold / Skip verdict, written to `.omo/evaluations/{repo-name}.md`.
 
-Detailed methodology, comparisons, and usage notes live under `docs/tool-evaluator/`.
+Detailed methodology, comparisons, and usage notes live under `docs/`.
 
 ## 触发条件 (Trigger Rules)
 

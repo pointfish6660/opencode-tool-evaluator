@@ -788,7 +788,7 @@ Max Concurrent: 6 (Wave 1)
   - Message: `feat(docs): add evaluation framework and usage guide`
   - Files: `docs/tool-evaluator/*.md`
 
-- [ ] 7. 软链接 + GitHub 远程仓库创建 + 首次推送
+- [x] 7. 软链接 + GitHub 远程仓库创建 + 首次推送
 
   **What to do**:
   - 创建软链接：`ln -s ~/projects/05-tool-evaluator ~/.claude/skills/tool-evaluator`
@@ -864,7 +864,7 @@ Max Concurrent: 6 (Wave 1)
   - Files: all files
   - Pre-commit: 确认 Tasks 1-6 全部完成
 
-- [ ] 8. 样本验证 1: Headroom（chopratejas/headroom）
+- [x] 8. 样本验证 1: Headroom（chopratejas/headroom）
 
   **What to do**:
   - 在新 OpenCode session 中（确保 skill 已通过软链接发现），触发评估：
@@ -938,7 +938,7 @@ Max Concurrent: 6 (Wave 1)
   - Message: `feat(evaluations): add Headroom, UA, {3rd} sample reports`
   - Files: `.omo/evaluations/headroom.md`
 
-- [ ] 9. 样本验证 2: Understand-Anything（Lum1104/understand-anything）
+- [x] 9. 样本验证 2: Understand-Anything（Lum1104/understand-anything）
 
   **What to do**:
   - 在新 OpenCode session 中触发评估："评估 Lum1104/understand-anything"
@@ -1005,7 +1005,7 @@ Max Concurrent: 6 (Wave 1)
   - Message: `feat(evaluations): add Headroom, UA, {3rd} sample reports`
   - Files: `.omo/evaluations/understand-anything.md`
 
-- [ ] 10. 样本验证 3: 第三个项目（用户选择或自动选择高 stars 项目）
+- [x] 10. 样本验证 3: 第三个项目（用户选择或自动选择高 stars 项目）
 
   **What to do**:
   - 选择第 3 个验证项目（建议从 GitHub Trending 或 awesome-claude-skills 中挑一个高 stars 的 MCP Server，如 `anthropics/claude-code-skills` 或 `modelcontextprotocol/servers` 下的某个）
@@ -1069,19 +1069,19 @@ Max Concurrent: 6 (Wave 1)
 
 > 4 review agents run in PARALLEL. ALL must APPROVE. Present consolidated results to user and get explicit "okay" before completing.
 
-- [ ] F1. **Plan Compliance Audit** — `oracle`
+- [x] F1. **Plan Compliance Audit** — `oracle`
   Read the plan end-to-end. For each "Must Have": verify implementation exists (read file, run command). For each "Must NOT Have": search codebase for forbidden patterns. Compare deliverables against plan.
   Output: `Must Have [N/N] | Must NOT Have [N/N] | Tasks [N/N] | VERDICT: APPROVE/REJECT`
 
-- [ ] F2. **Code Quality Review** — `unspecified-high`
+- [x] F2. **Code Quality Review** — `unspecified-high`
   Run `shellcheck` on all scripts. Review SKILL.md / docs for grammar, formatting, completeness. Check .omo/evaluations/ reports for quality.
   Output: `Shellcheck [PASS/FAIL] | Docs [N/N] | Reports [N/N] | VERDICT`
 
-- [ ] F3. **Real Manual QA** — `unspecified-high`
+- [x] F3. **Real Manual QA** — `unspecified-high`
   Start from clean state. Execute EVERY QA scenario from EVERY task. Test cross-task integration (skill triggers, generates report). Save to `.omo/evidence/final-qa/`.
   Output: `Scenarios [N/N pass] | Integration [N/N] | VERDICT`
 
-- [ ] F4. **Scope Fidelity Check** — `deep`
+- [x] F4. **Scope Fidelity Check** — `deep`
   For each task: read "What to do", read actual diff. Verify 1:1 — everything in spec was built, nothing beyond spec was built. Check "Must NOT do" compliance.
   Output: `Tasks [N/N compliant] | VERDICT`
 

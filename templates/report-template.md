@@ -78,4 +78,4 @@ total_score: {{total_score}}
 
 ## 附录: 评估方法
 
-> 本评估使用 [tool-evaluator](https://github.com/pointfish/opencode-tool-evaluator) 的 6 维度加权评分框架。详见 [评估框架文档](https://github.com/pointfish/opencode-tool-evaluator/blob/main/docs/tool-evaluator/01-evaluation-framework.md)。
+> 本评估使用 [tool-evaluator](https://github.com/pointfish/opencode-tool-evaluator) 的 6 维度加权评分框架。详见 [评估框架文档](https://github.com/pointfish/opencode-tool-evaluator/blob/main/docs/01-evaluation-framework.md)。

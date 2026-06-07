@@ -58,11 +58,10 @@ The evaluator will:
 ├── templates/
 │   └── report-template.md    # Evaluation report output template
 ├── docs/
-│   └── tool-evaluator/
-│       ├── README.md                    # Documentation hub
-│       ├── 01-evaluation-framework.md   # 6-dimension scoring methodology
-│       ├── 02-usage-guide.md            # Usage guide and trigger words
-│       └── 03-comparative-analysis.md   # vs existing tools comparison
+│   ├── README.md                    # Documentation hub
+│   ├── 01-evaluation-framework.md   # 6-dimension scoring methodology
+│   ├── 02-usage-guide.md            # Usage guide and trigger words
+│   └── 03-comparative-analysis.md   # vs existing tools comparison
 ├── .gitignore
 ├── .omo/
 │   ├── evaluations/          # Cached evaluation reports

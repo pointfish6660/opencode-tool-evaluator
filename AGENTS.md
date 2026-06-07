@@ -11,11 +11,10 @@ OpenCode skill (`tool-evaluator`) for evaluating AI dev tools (Skill/MCP Server/
 │   ├── github-report.sh      # GitHub repo metadata scraper
 │   └── security-scan.sh      # Security/intrusiveness scanner
 ├── docs/
-│   └── tool-evaluator/
-│       ├── README.md
-│       ├── 01-evaluation-framework.md
-│       ├── 02-usage-guide.md
-│       └── 03-comparative-analysis.md
+│   ├── README.md
+│   ├── 01-evaluation-framework.md
+│   ├── 02-usage-guide.md
+│   └── 03-comparative-analysis.md
 ├── templates/
 │   └── report-template.md    # Evaluation output markdown template
 ├── .omo/
@@ -33,8 +32,8 @@ OpenCode skill (`tool-evaluator`) for evaluating AI dev tools (Skill/MCP Server/
 | `scripts/github-report.sh` | Fetches stars, issues, contributors, commits via GitHub API |
 | `scripts/security-scan.sh` | Scans for hooks/launchd/settings.json modifications and network calls |
 | `templates/report-template.md` | Markdown template for structured evaluation output |
-| `docs/tool-evaluator/01-evaluation-framework.md` | 6-dimension scoring rubrics and weight configuration |
-| `docs/tool-evaluator/03-comparative-analysis.md` | Comparison against 13 existing tools |
+| `docs/01-evaluation-framework.md` | 6-dimension scoring rubrics and weight configuration |
+| `docs/03-comparative-analysis.md` | Comparison against 13 existing tools |
 
 ## Conventions
 
@@ -46,7 +45,7 @@ OpenCode skill (`tool-evaluator`) for evaluating AI dev tools (Skill/MCP Server/
 
 ## Common Tasks
 
-- **Add a scoring dimension** — edit `docs/tool-evaluator/01-evaluation-framework.md` and `SKILL.md`
+- **Add a scoring dimension** — edit `docs/01-evaluation-framework.md` and `SKILL.md`
 - **Tweak verdict thresholds** — edit `SKILL.md` (Verdict 规则 section)
 - **Fix GitHub scraping** — edit `scripts/github-report.sh`
 - **Change output format** — edit `templates/report-template.md`
