@@ -67,6 +67,10 @@ total_score: {{total_score}}
 | Contributors | {{contributors_count}} |
 | Default Branch | {{default_branch}} |
 | Created / Updated | {{created_at}} / {{updated_at}} |
+| Issue 中位关闭时长 | {{issue_close_median_hours}} 小时 |
+| 最老 Open Issue | {{oldest_open_days}} 天 |
+| Release 数 / 最新版本 | {{release_count}} / {{latest_tag}} |
+| Release 节奏 (平均间隔) | {{cadence_days_avg}} 天 |
 
 ## 替代方案
 

@@ -114,7 +114,7 @@ Step 5: 生成报告
 
 **Step 3 脚本**：两个脚本并行运行，输出严格 JSON。任一脚本失败则停止并报告错误，不编造评分。
 
-**Step 4 评分**：结合脚本数据 + 简短社区调研（HN / Reddit / GitHub Issues / CHANGELOG），为每个维度打分并撰写证据说明。
+**Step 4 评分**：结合脚本输出（含 Issue 关闭耗时、Release 节奏、CHANGELOG 存在性等结构化字段）+ 简短社区调研（HN / Reddit，LLM 通过 web 调研获取，非脚本化），为每个维度打分并撰写证据说明。
 
 **Step 5 报告**：按 `templates/report-template.md` 格式生成完整报告，写入缓存文件。对话中只输出 ~200 字摘要（repo 名、六维度分数、加权总分、verdict emoji、最重要的一条理由）。
 
@@ -131,7 +131,10 @@ Step 5: 生成报告
 | **Frontmatter** | `repo`、`owner`、`evaluated_at`、`weighted_total`、`verdict` |
 | **摘要表** | 六维度分数 + 加权总分 + verdict emoji |
 | **维度详解** | 每维度 100-200 字说明 + 具体证据 |
-| **社区信号** | HN / Reddit / Issue 中的关键反馈 |
+| **Issue 健康** | `issues.close_median_hours`、`issues.oldest_open_days`、`issues.bug_count` |
+| **Release 节奏** | `releases.cadence_days_avg`、`releases.latest_tag`、`releases.has_breaking` |
+| **文档完整度** | `changelog.exists`、`releases.latest_body_chars` |
+| **社区信号** | HN / Reddit 上的定性反馈（LLM 通过 web 调研获取，非脚本化） |
 | **结论** | verdict 决定性理由 + 一票否决说明（如适用） |
 
 ### Verdict 含义
