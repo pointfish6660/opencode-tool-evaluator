@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>社区信号扩展 — Web Research 脚本化全流程</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});"></script>
+    <style>
+        :root { --bg: #f0f4f8; --card: #fff; --text: #1a1a2e; --text2: #4a5568; --accent: #2b6cb0; --accent-lt: #ebf4ff; --border: #e2e8f0; --sidebar-w: 260px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--text); line-height: 1.8; font-size: 16px; }
+
+        /* ╔══════════════════════════════════════════════════════════════╗
+           ║  CORE CSS — DO NOT DELETE (validated by convert.py)        ║
+           ║  These rules are required for tab switching to work.       ║
+           ║  Without .tab-panel {display:none}, all panels show.       ║
+           ║  Without .tab-panel.active {display:block}, none shows.    ║
+           ╚══════════════════════════════════════════════════════════════╝ */
+        .tab-bar { display: flex; background: var(--card); border-bottom: 2px solid var(--border); overflow-x: auto; }
+        /* END CORE CSS — everything below is safe to customize */
+
+        .tab-btn { flex: none; padding: 14px 20px; font-size: 14px; font-weight: 500; color: var(--text2); background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer; white-space: nowrap; transition: all .2s; overflow: hidden; text-overflow: ellipsis; }
+        body.layout-sidebar .tab-btn { white-space: normal; word-break: break-all; line-height: 1.4; }
+        .tab-btn:hover { background: #edf2f7; color: var(--accent); }
+        .tab-btn.active { color: var(--accent); font-weight: 600; border-bottom-color: var(--accent); }
+        .tab-panel { background: var(--card); padding: 28px 32px 36px; border-radius: 0 0 14px 14px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+
+        /* ╔══════════════════════════════════════════════════════════════╗
+           ║  SUB-NAV — 2nd-level h3 navigation (always visible)       ║
+           ║  Validated by convert.py when sub-nav items are present.   ║
+           ╚══════════════════════════════════════════════════════════════╝ */
+        .sub-nav {
+            display: block;
+            background: var(--card);
+            padding: 2px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .sub-nav-item {
+            display: block;
+            padding: 6px 12px 6px 28px;
+            font-size: 12px;
+            color: var(--text2);
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.15s ease;
+            line-height: 1.4;
+            word-break: break-all;
+        }
+        .sub-nav-item:hover {
+            color: var(--accent);
+            background: var(--accent-lt);
+        }
+        .sub-nav-item.active {
+            color: var(--accent);
+            background: var(--accent-lt);
+            font-weight: 600;
+        }
+        /* END SUB-NAV */
+
+        /* SIDEBAR overrides (applied via JS class) */
+        body.layout-sidebar { display: flex; min-height: 100vh; }
+        body.layout-sidebar .tab-bar {
+            position: fixed; top: 0; left: 0; width: var(--sidebar-w); height: 100vh;
+            flex-direction: column; overflow-y: auto; border-bottom: none;
+            border-right: 1px solid var(--border); box-shadow: 2px 0 8px rgba(0,0,0,.06);
+        }
+        body.layout-sidebar .tab-btn {
+            width: 100%; text-align: left; padding: 10px 16px; font-size: 13px;
+            border-bottom: none; border-left: 3px solid transparent;
+        }
+        body.layout-sidebar .tab-btn:hover { background: #edf2f7; }
+        body.layout-sidebar .tab-btn.active { background: var(--accent-lt); border-left-color: var(--accent); border-bottom-color: transparent; }
+        body.layout-sidebar .content-area { margin-left: var(--sidebar-w); flex: 1; min-width: 0; padding: 24px 32px 60px; max-width: 960px; }
+        body.layout-sidebar .tab-panel { border-radius: 14px; margin-bottom: 16px; }
+
+        /* TYPOGRAPHY */
+        h1 { font-size: 24px; color: var(--accent); margin: 36px 0 14px; padding-bottom: 8px; border-bottom: 2px solid var(--accent); }
+        h2 { font-size: 19px; color: #2d3748; margin: 28px 0 10px; padding-left: 12px; border-left: 4px solid var(--accent); }
+        h3 { font-size: 16px; color: #2d3748; margin: 22px 0 10px; background: var(--accent-lt); padding: 8px 14px; border-radius: 6px; }
+        h4 { font-size: 15px; color: #718096; margin: 14px 0 6px; }
+        p { margin: 8px 0; }
+        strong { color: #1a202c; }
+        blockquote { border-left: 4px solid var(--accent); background: var(--accent-lt); padding: 10px 14px; margin: 10px 0; border-radius: 0 6px; color: var(--text2); }
+        blockquote p { margin: 3px 0; }
+
+        /* TABLE */
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 14px; background: var(--card); border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.07); }
+        th { background: #edf2f7; padding: 9px 12px; text-align: left; font-weight: 600; color: #2d3748; border-bottom: 2px solid var(--border); }
+        td { padding: 7px 12px; border-bottom: 1px solid var(--border); }
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background: #f7fafc; }
+
+        /* CODE */
+        pre { background: #1e293b; color: #e2e8f0; padding: 14px; border-radius: 8px; overflow-x: auto; margin: 10px 0; font-size: 13px; line-height: 1.5; }
+        code { font-family: "SF Mono", "Fira Code", Consolas, monospace; font-size: .9em; }
+        p code, li code { background: #edf2f7; padding: 2px 5px; border-radius: 3px; color: #c53030; }
+
+        /* MISC */
+        svg { display: block; margin: 14px auto; max-width: 100%; }
+        ul, ol { padding-left: 22px; margin: 6px 0; }
+        li { margin: 3px 0; }
+        hr { border: none; height: 1px; background: var(--border); margin: 20px 0; }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            body.layout-sidebar .tab-bar { position: fixed; top: auto; bottom: 0; left: 0; width: 100%; height: auto; flex-direction: row; border-right: none; border-top: 1px solid var(--border); box-shadow: 0 -2px 8px rgba(0,0,0,.06); }
+            body.layout-sidebar .tab-btn { border-left: none; border-bottom: 3px solid transparent; padding: 10px 12px; font-size: 12px; text-align: center; }
+            body.layout-sidebar .tab-btn.active { border-left-color: transparent; border-bottom-color: var(--accent); }
+            body.layout-sidebar .content-area { margin-left: 0; padding: 16px 12px 80px; }
+            .sub-nav { display: none; }
+        }
+
+        /* PRINT */
+        @media print {
+            body { background: #fff; }
+            .tab-bar { display: none !important; }
+            .content-area { max-width: 100%; margin: 0; padding: 0; }
+            .tab-panel { display: block !important; box-shadow: none; border-top: 2px solid #ccc; margin-top: 20px; border-radius: 0; }
+            .sub-nav { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="tab-bar">
+<button class="tab-btn active" data-target="tab-0">第1轮 · HN API 使用情况探查</button>
+<button class="tab-btn" data-target="tab-1">第2轮 · Web 调研功能可行性评估</button>
+<div class="sub-nav" data-parent="tab-1">
+<a class="sub-nav-item" data-target="sec-1-0">1.1 各数据源 API 实情</a>
+<a class="sub-nav-item" data-target="sec-1-1">1.2 GitHub 参考实现</a>
+<a class="sub-nav-item" data-target="sec-1-2">1.3 推荐：方案 B（只建 Issues + Releases）</a>
+</div>
+<button class="tab-btn" data-target="tab-2">第3轮 · 方案 B 价值分析：10 类信号</button>
+<div class="sub-nav" data-parent="tab-2">
+<a class="sub-nav-item" data-target="sec-2-0">2.1 Issues (6 类)</a>
+<a class="sub-nav-item" data-target="sec-2-1">2.2 Releases/CHANGELOG (4 类)</a>
+<a class="sub-nav-item" data-target="sec-2-2">2.3 维度收益矩阵</a>
+</div>
+<button class="tab-btn" data-target="tab-3">第4轮 · 存档 + 进入规划</button>
+<button class="tab-btn" data-target="tab-4">第5轮 · 规划阶段：访谈与决策</button>
+<button class="tab-btn" data-target="tab-5">第6轮 · 计划生成与 Oracle 三阶段验证</button>
+<button class="tab-btn" data-target="tab-6">第7轮 · 直接开工</button>
+<div class="sub-nav" data-parent="tab-6">
+<a class="sub-nav-item" data-target="sec-6-0">6.1 Wave 1 (3 并行任务):</a>
+<a class="sub-nav-item" data-target="sec-6-1">6.2 验证结果:</a>
+</div>
+<button class="tab-btn" data-target="tab-7">第8轮 · 最终验证波 — 全票通过</button>
+<div class="sub-nav" data-parent="tab-7">
+<a class="sub-nav-item" data-target="sec-7-0">7.1 Final Verification Wave — 4 审查员并行:</a>
+</div>
+<button class="tab-btn" data-target="tab-8">第9轮 · 结项交付</button>
+    </nav>
+    <div class="content-area">
+    <div class="tab-content">
+<div class="tab-panel active" id="tab-0">
+<h2>第1轮 · HN API 使用情况探查</h2>
+<p><strong>用户：</strong> 分析一下，当前项目有用到 Hacker News (HN) API 么</p>
+<p><strong>回答：</strong> 我检测到研究意图 - 用户想知道项目中是否使用了 Hacker News API。这是一个聚焦的代码库搜索问题，直接使用 grep 工具即可。<br />
+再确认一下脚本里是否有实际调用 HN API 的实现代码：</p>
+<p><strong>结论：当前项目没有实际使用 Hacker News API。</strong></p>
+<p>HN 在项目中仅作为<strong>文档中的数据源参考</strong>出现，没有任何 API 调用实现：<br />
+- <code>SKILL.md</code> L76: 指导评估者结合脚本输出 + 简短 web 调研<br />
+- <code>docs/01-evaluation-framework.md</code>: HN/Reddit 社区共识列为成本维度评分依据来源<br />
+- <code>docs/02-usage-guide.md</code>: 模板里社区信号字段示例<br />
+- <code>docs/README.md</code>: 用户痛点是社区信息分散在 HN / Reddit / GitHub Issues 里</p>
+<p><strong>实际实现</strong>：<code>scripts/</code> 下只有 <code>github-report.sh</code> 和 <code>security-scan.sh</code>，无 HN/Reddit API 调用。HN 数据通过 LLM web 调研间接获取。</p>
+<hr />
+</div>
+<div class="tab-panel" id="tab-1">
+<h2>第2轮 · Web 调研功能可行性评估</h2>
+<p><strong>用户：</strong> 评估一下，如果做这个功能 web 调研（HN / Reddit / GitHub Issues / changelog）负载度有多大？是否有必要？github上是否有优秀的参考</p>
+<p><strong>回答：</strong> Prometheus 并行收集三方信息：项目设计意图、各数据源 API 复杂度、GitHub 参考实现。</p>
+<h3 id="sec-1-0">各数据源 API 实情</h3>
+<table>
+<thead>
+<tr>
+<th>来源</th>
+<th>鉴权</th>
+<th>速率</th>
+<th>复杂度</th>
+<th>建议</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HN (Algolia)</td>
+<td>无</td>
+<td>~10K/hr</td>
+<td>Low (curl+jq, ~10行)</td>
+<td>可选</td>
+</tr>
+<tr>
+<td>Reddit</td>
+<td>OAuth (2023新政策)</td>
+<td>100 QPM (OAuth)</td>
+<td>High</td>
+<td><strong>不建</strong></td>
+</tr>
+<tr>
+<td>GitHub Issues</td>
+<td>已用 gh api search/issues</td>
+<td>30 req/min</td>
+<td>Very Low (+2 query)</td>
+<td><strong>建</strong></td>
+</tr>
+<tr>
+<td>CHANGELOG/Releases</td>
+<td>GitHub Releases API (已鉴权)</td>
+<td>现有限额内</td>
+<td>Low (3调用, ~15行)</td>
+<td><strong>建</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="sec-1-1">GitHub 参考实现</h3>
+<ol>
+<li><strong>Varnan-Tech/opendirectory</strong> <code>fetch.py</code> — HN Algolia + Reddit 多源聚合</li>
+<li><strong>langchain-ai/example-tool-server</strong> — LangChain 官方 HN+Reddit 工具</li>
+<li><strong>dmi3/bin/headlines.sh</strong> — 最简纯 Bash HN (&lt;50行)</li>
+<li><strong>fayazara/feedful</strong> — 多源 feed 类型定义</li>
+</ol>
+<h3 id="sec-1-2">推荐：方案 B（只建 Issues + Releases）</h3>
+<ul>
+<li>投入：~30-50 行 Bash，无新依赖</li>
+<li>主营：D3 维护健康 (25% 权重) + D5 文档与 UX (10%)</li>
+<li>不建 HN/Reddit: LLM 通过 web 调研兜底</li>
+</ul>
+<hr />
+</div>
+<div class="tab-panel" id="tab-2">
+<h2>第3轮 · 方案 B 价值分析：10 类信号</h2>
+<p><strong>用户：</strong> 只建 Issues + Releases，预期能获得什么有价值的信息</p>
+<p><strong>回答：</strong> Prometheus 深入分析现有 <code>github-report.sh</code> 基线 + <code>01-evaluation-framework.md</code> 评分锚点，完整拆解 10 类新增信号：</p>
+<h3 id="sec-2-0">Issues (6 类)</h3>
+<ol>
+<li><strong>Issue 关闭耗时分布</strong> (→ D3, 25%): 中位/P90 关闭时长</li>
+<li><strong>bug/open 比</strong> (→ D4, 15%): label:bug 计数</li>
+<li><strong>最老未关闭 Issue</strong> (→ D3): 沉默 Issue 天数</li>
+<li><strong>维护者响应行为</strong> (→ D3+D4): 首次回复时延</li>
+<li><strong>Issue 标签体系</strong> (→ D5, 10%): label 总数</li>
+<li><strong>安全相关 Issue</strong> (→ D2 兜底): security/vulnerability label</li>
+</ol>
+<h3 id="sec-2-1">Releases/CHANGELOG (4 类)</h3>
+<ol start="7">
+<li><strong>Release 节奏</strong> (→ D3): 最近 release 间隔均值</li>
+<li><strong>版本号纪律</strong> (→ D3+D1): major/minor bump 模式</li>
+<li><strong>Release Notes 质量</strong> (→ D5): body 长度 + BREAKING 标记</li>
+<li><strong>CHANGELOG 存在性</strong> (→ D5): 文件是否存在 + 大小</li>
+</ol>
+<h3 id="sec-2-2">维度收益矩阵</h3>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>权重</th>
+<th>现有→新增信号数</th>
+<th>提升</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>D3 维护健康</td>
+<td>25%</td>
+<td>4→9</td>
+<td>⭐ 显著</td>
+</tr>
+<tr>
+<td>D5 文档与 UX</td>
+<td>10%</td>
+<td>1→4</td>
+<td>⭐ 显著</td>
+</tr>
+<tr>
+<td>D4 功能价值</td>
+<td>15%</td>
+<td>1→2</td>
+<td>中等</td>
+</tr>
+<tr>
+<td>D6 运营成本</td>
+<td>10%</td>
+<td>0→0</td>
+<td>— (仍依赖 LLM)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>值得做。</strong> 用户确认进入规划。</p>
+<hr />
+</div>
+<div class="tab-panel" id="tab-3">
+<h2>第4轮 · 存档 + 进入规划</h2>
+<p><strong>用户：</strong> 1. 把这次评估结论存到 .omo/notepads/web-research-feasibility.md 留档, 2. 进入规划</p>
+<p><strong>回答：</strong> 并行完成：(1) 评估结论追加到 <code>.omo/notepads/tool-evaluator/learnings.md</code>；(2) 创建规划草稿 <code>.omo/drafts/extend-community-signals.md</code>。</p>
+<p>随后发起 4 个决策点访谈：<br />
+1. JSON 结构: 分组嵌套 / 平铺 / 前缀命名<br />
+2. 回退默认值: null / 类型默认 / null+warnings<br />
+3. 模板范围: 最小扩展表 / 新 section / 完整引用<br />
+4. 测试策略: QA Scenarios / schema 验证脚本 / TDD</p>
+<hr />
+</div>
+<div class="tab-panel" id="tab-4">
+<h2>第5轮 · 规划阶段：访谈与决策</h2>
+<p><strong>用户：</strong> JSON结构=分组嵌套, 回退默认=请给建议, 模板=最小扩展, 测试=QA Scenarios</p>
+<p><strong>回答：</strong> Prometheus 建议回退策略用 <strong>null</strong>（区分"抓不到" vs "真为0"），用户接受。</p>
+<p><strong>Clearance Check 通过</strong> — Core objective 明确、Scope IN/OUT 定义完好、无模糊决策点、技术方案已定、测试策略已决。</p>
+<p>Metis 咨询失败（session error），Oracle phase 1 替代验证 → <strong>CHECK 5/5 PASS | VERDICT: GO</strong>。</p>
+<p>进入 plan 生成。Oracle phase 2 验证 → <strong>CHECK 7/7 PASS | GO</strong>。</p>
+<p>Self-review 无缺漏。Oracle phase 3 验证 → <strong>CHECK 5/5 PASS | GO</strong>。</p>
+<p>Plan 保存至 <code>.omo/plans/extend-community-signals.md</code>（619 行, 4 个 implementation + 4 个 final verification）。</p>
+<hr />
+</div>
+<div class="tab-panel" id="tab-5">
+<h2>第6轮 · 计划生成与 Oracle 三阶段验证</h2>
+<p><strong>用户：</strong> (系统提示: 轻量级清理 + 一键整理)</p>
+<p><strong>回答：</strong> Draft 已删除。Plan 就绪。</p>
+<p><strong>关键决策确认：</strong><br />
+- JSON: 分组嵌套 <code>{issues:{}, releases:{}, changelog:{}}</code><br />
+- 回退: null（jq <code>--argjson field null</code>）<br />
+- 模板: 加行不建 section<br />
+- 测试: QA Scenarios only<br />
+- 依赖: 仅 gh + jq</p>
+<p><strong>护卫栏</strong>: SKILL.md / security-scan.sh / 01-evaluation-framework.md / AGENTS.md 不改。</p>
+<p>用户选择直接开工 (skip Momus review)。</p>
+<hr />
+</div>
+<div class="tab-panel" id="tab-6">
+<h2>第7轮 · 直接开工</h2>
+<p><strong>用户：</strong> /start-work extend-community-signals</p>
+<p><strong>回答：</strong> Atlas 启动 Sisyphus 工作会话。Plan 加载完毕，分解 granular todos，初始化证据目录。</p>
+<h3 id="sec-6-0">Wave 1 (3 并行任务):</h3>
+<ul>
+<li><strong>Task 1</strong> [deep]: 扩展 <code>github-report.sh</code> — Issues + Releases + Changelog 14 个新字段</li>
+<li><strong>Task 2</strong> [quick]: 更新 <code>docs/02-usage-guide.md</code> — Step 4 + 社区信号表</li>
+<li><strong>Task 3</strong> [quick]: 扩展 <code>templates/report-template.md</code> — GitHub 统计表 +4 行</li>
+</ul>
+<h3 id="sec-6-1">验证结果:</h3>
+<ul>
+<li>脚本 151→299 行，bash 语法通过，jq 解析有效</li>
+<li>所有 19 个原有字段未变（向后兼容）</li>
+<li>Null 回退工作正常（self repo 无 releases → null）</li>
+<li>cli/cli 验证: P90 268h, 256 bugs, 10 releases, 10.7d 节奏</li>
+<li>护卫栏: 4 个禁止文件均为 zero diff</li>
+</ul>
+<p>Tasks 1-3 标记完成，提交 commit <code>39d4039</code>。</p>
+<hr />
+</div>
+<div class="tab-panel" id="tab-7">
+<h2>第8轮 · 最终验证波 — 全票通过</h2>
+<p><strong>用户：</strong> (系统继续推进)</p>
+<p><strong>回答：</strong> Atlas 启动 Wave 2 (Task 4: 端到端 QA) → 3 repos 验证通过。</p>
+<h3 id="sec-7-0">Final Verification Wave — 4 审查员并行:</h3>
+<table>
+<thead>
+<tr>
+<th>Reviewer</th>
+<th>类型</th>
+<th>结论</th>
+<th>关键发现</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>F1</td>
+<td>oracle</td>
+<td><strong>APPROVE</strong></td>
+<td>Must Have 5/5 ✓, Must NOT Have 9/9 ✓</td>
+</tr>
+<tr>
+<td>F2</td>
+<td>unspecified-high</td>
+<td><strong>APPROVE</strong></td>
+<td>Error handling ✓, null injection ✓, style ✓</td>
+</tr>
+<tr>
+<td>F3</td>
+<td>unspecified-high</td>
+<td><strong>APPROVE</strong></td>
+<td>3/3 repos pass, null fallback ✓, backward compat ✓</td>
+</tr>
+<tr>
+<td>F4</td>
+<td>deep</td>
+<td><strong>APPROVE</strong></td>
+<td>4/4 tasks compliant, 0 forbidden files touched</td>
+</tr>
+</tbody>
+</table>
+<hr />
+</div>
+<div class="tab-panel" id="tab-8">
+<h2>第9轮 · 结项交付</h2>
+<p><strong>用户：</strong> (BOULDER COMPLETE 系统提示)</p>
+<p><strong>回答：</strong></p>
+<pre><code>ORCHESTRATION COMPLETE
+
+PLAN: extend-community-signals
+TOTAL ELAPSED: 21m 33s
+TASKS COMPLETED: 8/8
+
+PER-TASK ELAPSED:
+- 1. Extend github-report.sh: 2m 20s
+- 2. Update docs/02-usage-guide.md: 35s
+- 3. Extend templates/report-template.md: 26s
+- 4. End-to-end QA validation: 15s
+- F1. Plan Compliance Audit: 29s
+- F2. Code Quality Review: 40s
+- F3. Real Manual QA: 3m 4s
+- F4. Scope Fidelity Check: 59s
+
+FINAL WAVE: F1 [APPROVE] | F2 [APPROVE] | F3 [APPROVE] | F4 [APPROVE]
+</code></pre>
+<p>18/18 checkboxes complete。所有任务 + DoD + Final Checklist 验证通过。</p>
+<p><strong>交付物</strong>:<br />
+- <code>scripts/github-report.sh</code>: 151→299 lines, +14 new fields in 3 nested sub-objects<br />
+- <code>docs/02-usage-guide.md</code>: L117 Step 4 + L134 table updated<br />
+- <code>templates/report-template.md</code>: +4 rows in GitHub 统计 table<br />
+- Guardrails: SKILL.md, security-scan.sh, 01-evaluation-framework.md, AGENTS.md zero changes</p>
+</div>
+    </div>
+    </div>
+    <script>
+        /* ╔══════════════════════════════════════════════════════════════╗
+           ║  CORE JS — DO NOT DELETE (validated by convert.py)          ║
+           ║  switchTab + layout-sidebar activation are required.        ║
+           ╚════════════════════════════════════════════════════════════╝ */
+        document.body.classList.add('layout-sidebar');
+        function switchTab(targetId) {
+            var panel = document.getElementById(targetId);
+            if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            document.querySelectorAll('.tab-btn').forEach(function(b){
+                b.classList.toggle('active', b.dataset.target === targetId);
+            });
+        }
+        var tabs = document.querySelectorAll('.tab-btn');
+        tabs.forEach(function(btn){
+            btn.addEventListener('click', function(){ switchTab(btn.dataset.target); });
+        });
+        // Scroll-based active tab update
+        var observer = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    document.querySelectorAll('.tab-btn').forEach(function(b){
+                        b.classList.toggle('active', b.dataset.target === entry.target.id);
+                    });
+                }
+            });
+        }, { rootMargin: '-20% 0px -70% 0px' });
+        document.querySelectorAll('.tab-panel').forEach(function(p){ observer.observe(p); });
+
+        /* ╔══════════════════════════════════════════════════════════════╗
+           ║  SUB-NAV JS — 2nd-level h3 navigation                      ║
+           ║  Click: scroll to h3, highlight parent tab                 ║
+           ║  IMPORTANT: does NOT call switchTab (avoids scroll conflict)║
+           ╚════════════════════════════════════════════════════════════╝ */
+        document.querySelectorAll('.sub-nav-item').forEach(function(item){
+            item.addEventListener('click', function(e){
+                e.preventDefault();
+                var targetId = item.dataset.target;
+                var el = document.getElementById(targetId);
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // Activate parent tab (highlight only, no scroll)
+                var parentSub = item.closest('.sub-nav');
+                if (parentSub) {
+                    var parentId = parentSub.dataset.parent;
+                    document.querySelectorAll('.tab-btn').forEach(function(b){
+                        b.classList.toggle('active', b.dataset.target === parentId);
+                    });
+                }
+                // Highlight this sub-nav item
+                document.querySelectorAll('.sub-nav-item').forEach(function(sni){
+                    sni.classList.remove('active');
+                });
+                item.classList.add('active');
+            });
+        });
+        // H3 scroll-based sub-nav active state
+        var h3Observer = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    var id = entry.target.id;
+                    document.querySelectorAll('.sub-nav-item').forEach(function(sni){
+                        sni.classList.toggle('active', sni.dataset.target === id);
+                    });
+                }
+            });
+        }, { rootMargin: '-20% 0px -70% 0px' });
+        document.querySelectorAll('.tab-panel h3[id]').forEach(function(h3){ h3Observer.observe(h3); });
+    </script>
+</body>
+</html>
