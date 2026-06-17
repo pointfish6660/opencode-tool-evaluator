@@ -1,0 +1,220 @@
+{
+  "schema_version": 2,
+  "active_work_id": "extend-community-signals-346d1070",
+  "works": {
+    "tool-evaluator-94fa15fe": {
+      "work_id": "tool-evaluator-94fa15fe",
+      "active_plan": "/Users/pointfish/projects/05-tool-evaluator/.omo/plans/tool-evaluator.md",
+      "plan_name": "tool-evaluator",
+      "status": "active",
+      "started_at": "2026-06-07T09:05:42.121Z",
+      "updated_at": "2026-06-07T09:05:42.121Z",
+      "session_ids": [
+        "opencode:ses_15eab513cffeyQKJlSmrbIGRzV"
+      ],
+      "session_origins": {
+        "opencode:ses_15eab513cffeyQKJlSmrbIGRzV": "direct"
+      },
+      "agent": "atlas",
+      "task_sessions": {}
+    },
+    "tool-evaluator-2a7588d2": {
+      "work_id": "tool-evaluator-2a7588d2",
+      "active_plan": "/Users/pointfish/projects/05-tool-evaluator/.omo/plans/tool-evaluator.md",
+      "plan_name": "tool-evaluator",
+      "status": "completed",
+      "started_at": "2026-06-07T09:05:42.142Z",
+      "updated_at": "2026-06-07T09:35:58.028Z",
+      "session_ids": [
+        "opencode:ses_15eab513cffeyQKJlSmrbIGRzV"
+      ],
+      "session_origins": {
+        "opencode:ses_15eab513cffeyQKJlSmrbIGRzV": "direct"
+      },
+      "agent": "atlas",
+      "task_sessions": {
+        "todo:1": {
+          "task_key": "todo:1",
+          "task_label": "1",
+          "task_title": "项目骨架（README/LICENSE/.gitignore/AGENTS.md）",
+          "session_id": "opencode:ses_15eaa0bb5ffeVmGPfKJu48lzP2",
+          "agent": "Sisyphus-Junior",
+          "started_at": "2026-06-07T09:07:45.957Z",
+          "status": "completed",
+          "updated_at": "2026-06-07T09:17:36.357Z",
+          "ended_at": "2026-06-07T09:17:36.357Z",
+          "elapsed_ms": 590400
+        },
+        "todo:7": {
+          "task_key": "todo:7",
+          "task_label": "7",
+          "task_title": "软链接 + GitHub 远程仓库创建 + 首次推送",
+          "session_id": "opencode:ses_15e9fddaeffeDCMULP1DJ3or1o",
+          "agent": "Sisyphus-Junior",
+          "category": "quick",
+          "updated_at": "2026-06-07T09:19:30.825Z",
+          "started_at": "2026-06-07T09:19:12.205Z",
+          "status": "completed",
+          "ended_at": "2026-06-07T09:19:30.825Z",
+          "elapsed_ms": 18620
+        },
+        "todo:8": {
+          "task_key": "todo:8",
+          "task_label": "8",
+          "task_title": "样本验证 1: Headroom（chopratejas/headroom）",
+          "session_id": "opencode:ses_15e9e3ce8ffeuj7RWfMW7Y1899",
+          "agent": "Sisyphus-Junior",
+          "category": "unspecified-high",
+          "updated_at": "2026-06-07T09:31:48.998Z",
+          "started_at": "2026-06-07T09:21:45.261Z",
+          "status": "completed",
+          "ended_at": "2026-06-07T09:31:48.998Z",
+          "elapsed_ms": 603737
+        },
+        "final-wave:f1": {
+          "task_key": "final-wave:f1",
+          "task_label": "F1",
+          "task_title": "**Plan Compliance Audit** — `oracle`",
+          "session_id": "opencode:ses_15e92ff50ffeEbitKSaU35XGNF",
+          "agent": "oracle",
+          "updated_at": "2026-06-07T09:35:21.649Z",
+          "started_at": "2026-06-07T09:35:13.235Z",
+          "status": "completed",
+          "ended_at": "2026-06-07T09:35:21.649Z",
+          "elapsed_ms": 8414
+        }
+      },
+      "ended_at": "2026-06-07T09:35:58.028Z",
+      "elapsed_ms": 1815886
+    },
+    "extend-community-signals-346d1070": {
+      "work_id": "extend-community-signals-346d1070",
+      "active_plan": "/Users/pointfish/projects/05-tool-evaluator/.omo/plans/extend-community-signals.md",
+      "plan_name": "extend-community-signals",
+      "status": "completed",
+      "started_at": "2026-06-07T11:08:26.641Z",
+      "updated_at": "2026-06-07T11:29:59.735Z",
+      "session_ids": [
+        "opencode:ses_15e6edf5dffeLJJ3t7cG9GL8X5",
+        "opencode:ses_15e2ba439ffeJhzHScxbNNUiKy",
+        "opencode:ses_15e2b8766ffedfl6H8pSpT4z2C",
+        "opencode:ses_15e2b6991ffetl3Fcj59vZ33qR",
+        "opencode:ses_15e2b4c00fferOnMMH3IOzWCM9"
+      ],
+      "session_origins": {
+        "opencode:ses_15e6edf5dffeLJJ3t7cG9GL8X5": "direct",
+        "opencode:ses_15e2ba439ffeJhzHScxbNNUiKy": "appended",
+        "opencode:ses_15e2b8766ffedfl6H8pSpT4z2C": "appended",
+        "opencode:ses_15e2b6991ffetl3Fcj59vZ33qR": "appended",
+        "opencode:ses_15e2b4c00fferOnMMH3IOzWCM9": "appended"
+      },
+      "agent": "atlas",
+      "task_sessions": {
+        "todo:1": {
+          "task_key": "todo:1",
+          "task_label": "1",
+          "task_title": "Extend github-report.sh with Issues + Releases + Changelog signals",
+          "session_id": "opencode:ses_15e39b051ffevHs9BBQY9ksOsA",
+          "agent": "Sisyphus-Junior",
+          "category": "deep",
+          "updated_at": "2026-06-07T11:20:46.862Z",
+          "started_at": "2026-06-07T11:18:26.851Z",
+          "status": "completed",
+          "ended_at": "2026-06-07T11:20:46.862Z",
+          "elapsed_ms": 140011
+        },
+        "todo:4": {
+          "task_key": "todo:4",
+          "task_label": "4",
+          "task_title": "End-to-end QA validation on real repos",
+          "session_id": "opencode:ses_15e2ef77bffemvYUZNfgTpYMh0",
+          "agent": "Sisyphus-Junior",
+          "category": "unspecified-high",
+          "updated_at": "2026-06-07T11:24:55.491Z",
+          "started_at": "2026-06-07T11:24:40.324Z",
+          "status": "completed",
+          "ended_at": "2026-06-07T11:24:55.491Z",
+          "elapsed_ms": 15167
+        },
+        "final-wave:f1": {
+          "task_key": "final-wave:f1",
+          "task_label": "F1",
+          "task_title": "**Plan Compliance Audit** — `oracle`",
+          "session_id": "opencode:ses_15e2b4c00fferOnMMH3IOzWCM9",
+          "agent": "Sisyphus-Junior",
+          "category": "deep",
+          "started_at": "2026-06-07T11:28:40.989Z",
+          "status": "completed",
+          "updated_at": "2026-06-07T11:29:10.254Z",
+          "ended_at": "2026-06-07T11:29:10.254Z",
+          "elapsed_ms": 29265
+        }
+      },
+      "ended_at": "2026-06-07T11:29:59.735Z",
+      "elapsed_ms": 1293094
+    }
+  },
+  "active_plan": "/Users/pointfish/projects/05-tool-evaluator/.omo/plans/extend-community-signals.md",
+  "started_at": "2026-06-07T11:08:26.641Z",
+  "status": "completed",
+  "updated_at": "2026-06-07T11:29:59.735Z",
+  "session_ids": [
+    "opencode:ses_15e6edf5dffeLJJ3t7cG9GL8X5",
+    "opencode:ses_15e2ba439ffeJhzHScxbNNUiKy",
+    "opencode:ses_15e2b8766ffedfl6H8pSpT4z2C",
+    "opencode:ses_15e2b6991ffetl3Fcj59vZ33qR",
+    "opencode:ses_15e2b4c00fferOnMMH3IOzWCM9"
+  ],
+  "session_origins": {
+    "opencode:ses_15e6edf5dffeLJJ3t7cG9GL8X5": "direct",
+    "opencode:ses_15e2ba439ffeJhzHScxbNNUiKy": "appended",
+    "opencode:ses_15e2b8766ffedfl6H8pSpT4z2C": "appended",
+    "opencode:ses_15e2b6991ffetl3Fcj59vZ33qR": "appended",
+    "opencode:ses_15e2b4c00fferOnMMH3IOzWCM9": "appended"
+  },
+  "plan_name": "extend-community-signals",
+  "task_sessions": {
+    "todo:1": {
+      "task_key": "todo:1",
+      "task_label": "1",
+      "task_title": "Extend github-report.sh with Issues + Releases + Changelog signals",
+      "session_id": "opencode:ses_15e39b051ffevHs9BBQY9ksOsA",
+      "agent": "Sisyphus-Junior",
+      "category": "deep",
+      "updated_at": "2026-06-07T11:20:46.862Z",
+      "started_at": "2026-06-07T11:18:26.851Z",
+      "status": "completed",
+      "ended_at": "2026-06-07T11:20:46.862Z",
+      "elapsed_ms": 140011
+    },
+    "todo:4": {
+      "task_key": "todo:4",
+      "task_label": "4",
+      "task_title": "End-to-end QA validation on real repos",
+      "session_id": "opencode:ses_15e2ef77bffemvYUZNfgTpYMh0",
+      "agent": "Sisyphus-Junior",
+      "category": "unspecified-high",
+      "updated_at": "2026-06-07T11:24:55.491Z",
+      "started_at": "2026-06-07T11:24:40.324Z",
+      "status": "completed",
+      "ended_at": "2026-06-07T11:24:55.491Z",
+      "elapsed_ms": 15167
+    },
+    "final-wave:f1": {
+      "task_key": "final-wave:f1",
+      "task_label": "F1",
+      "task_title": "**Plan Compliance Audit** — `oracle`",
+      "session_id": "opencode:ses_15e2b4c00fferOnMMH3IOzWCM9",
+      "agent": "Sisyphus-Junior",
+      "category": "deep",
+      "started_at": "2026-06-07T11:28:40.989Z",
+      "status": "completed",
+      "updated_at": "2026-06-07T11:29:10.254Z",
+      "ended_at": "2026-06-07T11:29:10.254Z",
+      "elapsed_ms": 29265
+    }
+  },
+  "agent": "atlas",
+  "ended_at": "2026-06-07T11:29:59.735Z",
+  "elapsed_ms": 1293094
+}
