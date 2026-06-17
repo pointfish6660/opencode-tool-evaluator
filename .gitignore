@@ -4,5 +4,4 @@
 # OpenCode runtime state (transient)
 .omo/evidence/
 .omo/run-continuation/
-.omo/notepads/
 .omo/drafts/
