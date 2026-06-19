@@ -14,7 +14,7 @@ The Tool Evaluator is an OpenCode skill that helps developers assess whether an 
 - **Weighted verdict system** - fixed weights (15/25/25/15/10/10) produce an overall 0-100 score with 🟢 Install / 🟡 Hold / 🔴 Skip verdict
 - **GitHub data scraping** - fetches stars, issues, contributors, last commit, license, and README excerpt via `gh` CLI
 - **Security intrusion scanning** - checks for hooks, launchd, settings.json modifications, network calls, elevated privileges
-- **Caching support** - evaluation reports cached at `.omo/evaluations/<repo>.md` with 30-day freshness window
+- **Dual-write caching** - each evaluation is written to two locations: a canonical store at the skill source (`$SKILL_ROOT/.omo/evaluations/<repo>.md`, the cross-project history archive and single source of truth) plus a mirror copy in the current project's `<cwd>/.omo/evaluations/<repo>.md`. 30-day freshness window; cache checks read only the canonical store.
 - **Evidence-backed output** - each dimension score is supported by concrete evidence and references
 
 ## Installation
@@ -45,7 +45,7 @@ The evaluator will:
 2. **Cache check** - Reuse existing report if evaluated within 30 days
 3. **Run scripts** - Execute github-report.sh and security-scan.sh in parallel
 4. **Score 6 dimensions** - Score each dimension 0-100 with evidence-based explanations
-5. **Generate report** - Write to `.omo/evaluations/<repo>.md` with verdict
+5. **Generate report** - Write to `$SKILL_ROOT/.omo/evaluations/<repo>.md` (canonical) and mirror to `<cwd>/.omo/evaluations/<repo>.md`
 
 ## Project Structure
 
@@ -64,7 +64,7 @@ The evaluator will:
 │   └── 03-comparative-analysis.md   # vs existing tools comparison
 ├── .gitignore
 ├── .omo/
-│   ├── evaluations/          # Cached evaluation reports
+│   ├── evaluations/          # Canonical evaluation archive (cross-project, source of truth)
 │   ├── notepads/             # Research notes
 │   └── plans/                # Task plans
 ├── AGENTS.md                 # Project description for OpenCode agents

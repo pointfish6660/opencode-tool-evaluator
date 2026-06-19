@@ -18,7 +18,7 @@ OpenCode skill (`tool-evaluator`) for evaluating AI dev tools (Skill/MCP Server/
 ├── templates/
 │   └── report-template.md    # Evaluation output markdown template
 ├── .omo/
-│   ├── evaluations/          # Cached evaluation results
+│   ├── evaluations/          # Canonical evaluation archive (cross-project, source of truth)
 │   ├── notepads/             # Research notes and learnings
 │   └── plans/                # Task plans and progress
 └── README.md                 # User-facing documentation
@@ -40,7 +40,7 @@ OpenCode skill (`tool-evaluator`) for evaluating AI dev tools (Skill/MCP Server/
 - **Markdown only** for docs and templates — no HTML, no LaTeX
 - **Bash scripts** for all automation — no Python, Node, or other runtime dependencies
 - **No build step** — SKILL.md is consumed directly by OpenCode; scripts run as-is
-- **Caching** — evaluation results go to `.omo/evaluations/<tool-slug>.md` with TTL
+- **Dual-write caching** — every evaluation writes two copies: canonical at `$SKILL_ROOT/.omo/evaluations/<repo>.md` (cross-project archive, single source of truth) + mirror at `<cwd>/.omo/evaluations/<repo>.md` (current-project copy). Cache checks read only the canonical copy.
 - **Evidence** — each score must be backed by a reference or inline data in the report
 
 ## Common Tasks

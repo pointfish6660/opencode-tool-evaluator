@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chrome 插件渲染本地 Markdown 文件调研</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});"></script>
+    <style>
+        :root { --bg: #f0f4f8; --card: #fff; --text: #1a1a2e; --text2: #4a5568; --accent: #2b6cb0; --accent-lt: #ebf4ff; --border: #e2e8f0; --sidebar-w: 260px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--text); line-height: 1.8; font-size: 16px; }
+
+        /* ╔══════════════════════════════════════════════════════════════╗
+           ║  CORE CSS — DO NOT DELETE (validated by convert.py)        ║
+           ║  These rules are required for tab switching to work.       ║
+           ║  Without .tab-panel {display:none}, all panels show.       ║
+           ║  Without .tab-panel.active {display:block}, none shows.    ║
+           ╚══════════════════════════════════════════════════════════════╝ */
+        .tab-bar { display: flex; background: var(--card); border-bottom: 2px solid var(--border); overflow-x: auto; }
+        /* END CORE CSS — everything below is safe to customize */
+
+        .tab-btn { flex: none; padding: 14px 20px; font-size: 14px; font-weight: 500; color: var(--text2); background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer; white-space: nowrap; transition: all .2s; overflow: hidden; text-overflow: ellipsis; }
+        body.layout-sidebar .tab-btn { white-space: normal; word-break: break-all; line-height: 1.4; }
+        .tab-btn:hover { background: #edf2f7; color: var(--accent); }
+        .tab-btn.active { color: var(--accent); font-weight: 600; border-bottom-color: var(--accent); }
+        .tab-panel { background: var(--card); padding: 28px 32px 36px; border-radius: 0 0 14px 14px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+
+        /* ╔══════════════════════════════════════════════════════════════╗
+           ║  SUB-NAV — 2nd-level h3 navigation (always visible)       ║
+           ║  Validated by convert.py when sub-nav items are present.   ║
+           ╚══════════════════════════════════════════════════════════════╝ */
+        .sub-nav {
+            display: block;
+            background: var(--card);
+            padding: 2px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .sub-nav-item {
+            display: block;
+            padding: 6px 12px 6px 28px;
+            font-size: 12px;
+            color: var(--text2);
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.15s ease;
+            line-height: 1.4;
+            word-break: break-all;
+        }
+        .sub-nav-item:hover {
+            color: var(--accent);
+            background: var(--accent-lt);
+        }
+        .sub-nav-item.active {
+            color: var(--accent);
+            background: var(--accent-lt);
+            font-weight: 600;
+        }
+        /* END SUB-NAV */
+
+        /* SIDEBAR overrides (applied via JS class) */
+        body.layout-sidebar { display: flex; min-height: 100vh; }
+        body.layout-sidebar .tab-bar {
+            position: fixed; top: 0; left: 0; width: var(--sidebar-w); height: 100vh;
+            flex-direction: column; overflow-y: auto; border-bottom: none;
+            border-right: 1px solid var(--border); box-shadow: 2px 0 8px rgba(0,0,0,.06);
+        }
+        body.layout-sidebar .tab-btn {
+            width: 100%; text-align: left; padding: 10px 16px; font-size: 13px;
+            border-bottom: none; border-left: 3px solid transparent;
+        }
+        body.layout-sidebar .tab-btn:hover { background: #edf2f7; }
+        body.layout-sidebar .tab-btn.active { background: var(--accent-lt); border-left-color: var(--accent); border-bottom-color: transparent; }
+        body.layout-sidebar .content-area { margin-left: var(--sidebar-w); flex: 1; min-width: 0; padding: 24px 32px 60px; max-width: 960px; }
+        body.layout-sidebar .tab-panel { border-radius: 14px; margin-bottom: 16px; }
+
+        /* TYPOGRAPHY */
+        h1 { font-size: 24px; color: var(--accent); margin: 36px 0 14px; padding-bottom: 8px; border-bottom: 2px solid var(--accent); }
+        h2 { font-size: 19px; color: #2d3748; margin: 28px 0 10px; padding-left: 12px; border-left: 4px solid var(--accent); }
+        h3 { font-size: 16px; color: #2d3748; margin: 22px 0 10px; background: var(--accent-lt); padding: 8px 14px; border-radius: 6px; }
+        h4 { font-size: 15px; color: #718096; margin: 14px 0 6px; }
+        p { margin: 8px 0; }
+        strong { color: #1a202c; }
+        blockquote { border-left: 4px solid var(--accent); background: var(--accent-lt); padding: 10px 14px; margin: 10px 0; border-radius: 0 6px; color: var(--text2); }
+        blockquote p { margin: 3px 0; }
+
+        /* TABLE */
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 14px; background: var(--card); border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.07); }
+        th { background: #edf2f7; padding: 9px 12px; text-align: left; font-weight: 600; color: #2d3748; border-bottom: 2px solid var(--border); }
+        td { padding: 7px 12px; border-bottom: 1px solid var(--border); }
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background: #f7fafc; }
+
+        /* CODE */
+        pre { background: #1e293b; color: #e2e8f0; padding: 14px; border-radius: 8px; overflow-x: auto; margin: 10px 0; font-size: 13px; line-height: 1.5; }
+        code { font-family: "SF Mono", "Fira Code", Consolas, monospace; font-size: .9em; }
+        p code, li code { background: #edf2f7; padding: 2px 5px; border-radius: 3px; color: #c53030; }
+
+        /* MISC */
+        svg { display: block; margin: 14px auto; max-width: 100%; }
+        ul, ol { padding-left: 22px; margin: 6px 0; }
+        li { margin: 3px 0; }
+        hr { border: none; height: 1px; background: var(--border); margin: 20px 0; }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            body.layout-sidebar .tab-bar { position: fixed; top: auto; bottom: 0; left: 0; width: 100%; height: auto; flex-direction: row; border-right: none; border-top: 1px solid var(--border); box-shadow: 0 -2px 8px rgba(0,0,0,.06); }
+            body.layout-sidebar .tab-btn { border-left: none; border-bottom: 3px solid transparent; padding: 10px 12px; font-size: 12px; text-align: center; }
+            body.layout-sidebar .tab-btn.active { border-left-color: transparent; border-bottom-color: var(--accent); }
+            body.layout-sidebar .content-area { margin-left: 0; padding: 16px 12px 80px; }
+            .sub-nav { display: none; }
+        }
+
+        /* PRINT */
+        @media print {
+            body { background: #fff; }
+            .tab-bar { display: none !important; }
+            .content-area { max-width: 100%; margin: 0; padding: 0; }
+            .tab-panel { display: block !important; box-shadow: none; border-top: 2px solid #ccc; margin-top: 20px; border-radius: 0; }
+            .sub-nav { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="tab-bar">
+<button class="tab-btn active" data-target="tab-0">第1轮 · Chrome插件渲染本地MD</button>
+<button class="tab-btn" data-target="tab-1">第2轮 · tool-evaluator评估markserv</button>
+    </nav>
+    <div class="content-area">
+    <div class="tab-content">
+<div class="tab-panel active" id="tab-0">
+<h2>第1轮 · Chrome插件渲染本地MD</h2>
+<p><strong>用户：</strong></p>
+<p>调研一下，有什么chrome插件，能够实现， 在打开http://127.0.0.1:8080/ 查看到有md文件时，网页中点击md文件，直接就能再浏览器新页面中，查看这个md文档，而且是人类友好的md阅读体验</p>
+<p><strong>回答：</strong></p>
+<p>研究/调研意图 — 用户在找一个 Chrome 插件，能让本地文件服务器（127.0.0.1:8080 的目录列表）上的 .md 文件在点击时自动渲染成可读格式。我的方法：并行 websearch 多个角度，综合推荐。</p>
+<h1>Chrome 插件调研：本地 HTTP 服务器上的 Markdown 渲染</h1>
+<p>你的场景有个关键细节需要注意：<strong><code>http://127.0.0.1:8080/</code> 是 HTTP 协议，不是 <code>file://</code></strong>。很多 Markdown 渲染插件默认只处理 <code>file://</code> 或特定远程域名（如 <code>raw.githubusercontent.com</code>），对 <code>127.0.0.1</code> 需要额外配置。另外，如果你用的是 <code>python3 -m http.server</code>，<code>.md</code> 文件默认会被当成 <code>application/octet-stream</code>，浏览器会<strong>下载而不是打开</strong>——所以插件必须能基于 URL 扩展名拦截，而不只依赖 Content-Type。</p>
+<p>基于这两点筛选，推荐如下：</p>
+<h2>🥇 首选：Markdown Viewer (simov)</h2>
+<ul>
+<li>商店：<a href="https://chromewebstore.google.com/detail/markdown-viewer/ckkdlimhmcjmikdlpkmbgfkaikojcbjk">ckkdlimhmcjmikdlpkmbgfkaikojcbjk</a></li>
+<li>开源：<a href="https://github.com/simov/markdown-viewer">github.com/simov/markdown-viewer</a></li>
+<li><strong>唯一在文档里明确写明支持 localhost 的插件</strong>：<blockquote>
+<p>any host that resolves to localhost IPv4 <code>127.0.0.1</code> or IPv6 <code>::1</code><br />
+Access to a specific port can be enabled by adding <code>http://localhost:3000</code></p>
+</blockquote>
+</li>
+<li><strong>Content-Type 检测 + URL 扩展名检测双保险</strong>——即使服务器返回 octet-stream，也能通过 <code>.md</code> 扩展名拦截渲染</li>
+<li>功能最全：30+ 主题、GFM、Mermaid、MathJax、ToC、自动重载（支持本地文件秒级刷新）、Prism 语法高亮、多解析器（markdown-it/marked/remark 可切换）、开源</li>
+</ul>
+<p><strong>配置步骤</strong>：<br />
+1. 安装后进入 <code>chrome://extensions</code> → 详情 → 勾选「Allow access to file URLs」<br />
+2. 点击插件图标 → Options → Compat → 在 host 白名单加上 <code>http://127.0.0.1:8080</code>（或 <code>http://localhost:8080</code>）<br />
+3. 访问目录列表，点 <code>.md</code> 文件即自动渲染</p>
+<h2>🥈 次选：MarkView</h2>
+<ul>
+<li>商店：<a href="https://chromewebstore.google.com/detail/markview-markdown-viewer/cfopbpknalachedpcddhgbgjoigklien">cfopbpknalachedpcddhgbgjoigklien</a></li>
+<li>支持「Any URL ending in .md/.markdown/.mkd/.mdx served as plain text」</li>
+<li>100% 隐私（零数据收集）、DOCX/HTML 导出、KaTeX、Mermaid（可缩放下载）、目录导航、原始视图切换、文件变化自动刷新</li>
+<li><strong>注意</strong>：它只渲染「以 raw 形式提供的 .md」，对 localhost 同样需要在扩展详情开启对应 host 权限</li>
+</ul>
+<h2>🥉 备选：Markdown Reader</h2>
+<ul>
+<li>商店：<a href="https://chromewebstore.google.com/detail/markdown-reader/medapdbncneneejhbgcjceippjlfkmkg">medapdbncneneejhbgcjceippjlfkmkg</a></li>
+<li>明确支持 <code>file://</code>、<code>http://</code>、<code>https://</code> 三种协议</li>
+<li>暗亮主题、实时刷新、图片预览、快捷键</li>
+</ul>
+<hr />
+<h2>一个绕开插件的根本性建议</h2>
+<p>你的目录服务器如果是 <code>python3 -m http.server 8080</code>，它的 <code>.md</code> Content-Type 处理是问题根源。<strong>换一个能正确设置 <code>text/markdown</code> 的服务器</strong>，体验会好很多，甚至可以不依赖插件：</p>
+<table>
+<thead>
+<tr>
+<th>方案</th>
+<th>命令</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/joeyespo/grip"><code>grip</code></a></td>
+<td><code>grip</code></td>
+<td>GitHub 风格渲染，需 GitHub token（高配）</td>
+</tr>
+<tr>
+<td><a href="https://github.com/markserv/markserv"><code>markserv</code></a></td>
+<td><code>npx markserv -p 8080</code></td>
+<td>实时渲染 MD，自带目录列表，<strong>点击 .md 直接渲染</strong></td>
+</tr>
+<tr>
+<td><a href="https://github.com/http-party/http-server"><code>http-server</code></a></td>
+<td><code>npx http-server -p 8080</code></td>
+<td>正确识别 <code>.md</code> 为 <code>text/markdown</code>，配合插件最稳</td>
+</tr>
+</tbody>
+</table>
+<p><strong>最省心组合</strong>：<code>npx markserv</code>（开箱即用，连插件都不用装）或 <code>Markdown Viewer (simov) + python http.server</code>（需要插件但服务器零依赖）。</p>
+<p>需要我帮你验证某个插件在你的具体服务器上能不能跑，或者帮你配一下 markserv 吗？</p>
+<hr />
+</div>
+<div class="tab-panel" id="tab-1">
+<h2>第2轮 · tool-evaluator评估markserv</h2>
+<p><strong>用户：</strong></p>
+<p>调用skill 调研一下 markserv 是否适合我使用</p>
+<p><strong>回答：</strong></p>
+<p>用户意图：评估 markserv 是否适合安装使用。这是 tool-evaluator skill 的标准触发场景（GitHub CLI 工具评估）。直接调用。</p>
+<p>Skill 已加载。按工作流执行评估。先做 Step 1-2：解析输入 + 缓存检查。</p>
+<p><strong>Step 1: 解析输入</strong> — <code>owner=markserv</code>, <code>repo=markserv</code>，合法。</p>
+<p>并行执行：检查缓存 + 确认脚本存在。</p>
+<p>缓存不存在，脚本就绪。<strong>Step 3：并行运行两个数据采集脚本</strong>。</p>
+<p>数据采集完成。两个脚本返回完整 JSON。<strong>Step 4：6 维度评估</strong> — 先查看报告模板，然后基于数据评分。</p>
+<p>数据齐全。完成 6 维度评分并生成报告。</p>
+<p><strong>评分结果：</strong></p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>权重</th>
+<th>得分</th>
+<th>加权</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>兼容性</td>
+<td>15%</td>
+<td>85</td>
+<td>12.75</td>
+</tr>
+<tr>
+<td>安全/侵入性</td>
+<td>25%</td>
+<td>90</td>
+<td>22.50</td>
+</tr>
+<tr>
+<td>维护健康</td>
+<td>25%</td>
+<td>55</td>
+<td>13.75</td>
+</tr>
+<tr>
+<td>功能价值</td>
+<td>15%</td>
+<td>85</td>
+<td>12.75</td>
+</tr>
+<tr>
+<td>文档与UX</td>
+<td>10%</td>
+<td>72</td>
+<td>7.20</td>
+</tr>
+<tr>
+<td>运营成本</td>
+<td>10%</td>
+<td>90</td>
+<td>9.00</td>
+</tr>
+<tr>
+<td><strong>总分</strong></td>
+<td></td>
+<td></td>
+<td><strong>78</strong></td>
+</tr>
+</tbody>
+</table>
+<p>78 → 🟡 <strong>Hold</strong>。用 heredoc 写入报告（&gt;5KB）：</p>
+<p><strong>Step 5：评估完成。报告已写入 <code>.omo/evaluations/markserv.md</code>。</strong></p>
+<hr />
+<h2>markserv 评估摘要</h2>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>权重</th>
+<th>得分</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>兼容性</td>
+<td>15%</td>
+<td>85</td>
+</tr>
+<tr>
+<td>安全/侵入性</td>
+<td>25%</td>
+<td>90</td>
+</tr>
+<tr>
+<td>维护健康</td>
+<td>25%</td>
+<td>55</td>
+</tr>
+<tr>
+<td>功能价值</td>
+<td>15%</td>
+<td>85</td>
+</tr>
+<tr>
+<td>文档与UX</td>
+<td>10%</td>
+<td>72</td>
+</tr>
+<tr>
+<td>运营成本</td>
+<td>10%</td>
+<td>90</td>
+</tr>
+<tr>
+<td><strong>总分</strong></td>
+<td></td>
+<td><strong>78 → 🟡 Hold</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>最关键理由</strong>：markserv 功能上完美命中你的需求（serve markdown as GitHub-style html + 目录索引 + live-reload），安全性和成本表现极佳（MIT、零 hooks、零系统侵入、免费本地运行）。唯一拖分项是维护健康度——3 个月前最后 commit、0 个正式 release、issue close rate 65%、最老 issue 积压 3523 天。</p>
+<p><strong>但对你来说，这个 Hold 应该被理性看待</strong>：markserv 解决的问题足够简单稳定，9 年项目说明已经过了时间检验，"维护不活跃" ≠ "不能用"。</p>
+<p><strong>实际建议</strong>：</p>
+<pre><code class="language-bash"># 临时验证（零风险，不安装）
+npx markserv
+
+# 满意后全局安装
+npm i -g markserv
+</code></pre>
+<p>启动后在浏览器访问 <code>http://localhost:8080/</code>，目录列表里的 <code>.md</code> 文件点击即渲染成 GitHub 风格页面，编辑器改文件还会自动热重载。</p>
+<p>完整报告：<code>.omo/evaluations/markserv.md</code></p>
+</div>
+    </div>
+    </div>
+    <script>
+        /* ╔══════════════════════════════════════════════════════════════╗
+           ║  CORE JS — DO NOT DELETE (validated by convert.py)          ║
+           ║  switchTab + layout-sidebar activation are required.        ║
+           ╚════════════════════════════════════════════════════════════╝ */
+        document.body.classList.add('layout-sidebar');
+        function switchTab(targetId) {
+            var panel = document.getElementById(targetId);
+            if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            document.querySelectorAll('.tab-btn').forEach(function(b){
+                b.classList.toggle('active', b.dataset.target === targetId);
+            });
+        }
+        var tabs = document.querySelectorAll('.tab-btn');
+        tabs.forEach(function(btn){
+            btn.addEventListener('click', function(){ switchTab(btn.dataset.target); });
+        });
+        // Scroll-based active tab update
+        var observer = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    document.querySelectorAll('.tab-btn').forEach(function(b){
+                        b.classList.toggle('active', b.dataset.target === entry.target.id);
+                    });
+                }
+            });
+        }, { rootMargin: '-20% 0px -70% 0px' });
+        document.querySelectorAll('.tab-panel').forEach(function(p){ observer.observe(p); });
+
+        /* ╔══════════════════════════════════════════════════════════════╗
+           ║  SUB-NAV JS — 2nd-level h3 navigation                      ║
+           ║  Click: scroll to h3, highlight parent tab                 ║
+           ║  IMPORTANT: does NOT call switchTab (avoids scroll conflict)║
+           ╚════════════════════════════════════════════════════════════╝ */
+        document.querySelectorAll('.sub-nav-item').forEach(function(item){
+            item.addEventListener('click', function(e){
+                e.preventDefault();
+                var targetId = item.dataset.target;
+                var el = document.getElementById(targetId);
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // Activate parent tab (highlight only, no scroll)
+                var parentSub = item.closest('.sub-nav');
+                if (parentSub) {
+                    var parentId = parentSub.dataset.parent;
+                    document.querySelectorAll('.tab-btn').forEach(function(b){
+                        b.classList.toggle('active', b.dataset.target === parentId);
+                    });
+                }
+                // Highlight this sub-nav item
+                document.querySelectorAll('.sub-nav-item').forEach(function(sni){
+                    sni.classList.remove('active');
+                });
+                item.classList.add('active');
+            });
+        });
+        // H3 scroll-based sub-nav active state
+        var h3Observer = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    var id = entry.target.id;
+                    document.querySelectorAll('.sub-nav-item').forEach(function(sni){
+                        sni.classList.toggle('active', sni.dataset.target === id);
+                    });
+                }
+            });
+        }, { rootMargin: '-20% 0px -70% 0px' });
+        document.querySelectorAll('.tab-panel h3[id]').forEach(function(h3){ h3Observer.observe(h3); });
+    </script>
+</body>
+</html>

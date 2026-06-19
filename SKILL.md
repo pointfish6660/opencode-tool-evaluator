@@ -43,6 +43,20 @@ Activate this skill whenever the user message matches any of the patterns below.
 - The user asks to compare two already-installed tools (multi-tool comparison is out of scope).
 - The user asks to author or edit a skill (route to `skill-creator`).
 
+## 路径约定 (Path Convention)
+
+每次评估产生**两份**报告文件,角色不同:
+
+| 角色 | 路径 | 用途 |
+|------|------|------|
+| **总库 (canonical)** | `$SKILL_ROOT/.omo/evaluations/{repo}.md` | 跨项目评估历史汇总,唯一事实源;缓存检查只读这里 |
+| **当前项目副本 (mirror)** | `<cwd>/.omo/evaluations/{repo}.md` | 就近可见,符合"本项目要用某工具"的语境 |
+
+- `$SKILL_ROOT` = 本技能源码根目录 = `~/projects/05-tool-evaluator`。所有路径引用此锚点;迁移技能时只需改这一处声明。
+- `{repo}` 规则不变:小写仓库名,斜杠替换为 `-`。
+- 当当前项目**就是**技能源码目录时(cwd == `$SKILL_ROOT`),两路径重合,只需写一次,无需复制。
+- 总库永远是较新或等价版本;副本可能滞后,以总库为准。
+
 ## 工作流 (Workflow)
 
 The evaluator follows five sequential steps. Each step's output feeds the next; do not skip ahead.
@@ -56,11 +70,12 @@ The evaluator follows five sequential steps. Each step's output feeds the next; 
 
 ### Step 2: 缓存检查
 
-- Compute the cache path: `.omo/evaluations/{repo}.md` (lowercase repo name, slashes replaced by `-` if any).
-- If the file exists, read its frontmatter `evaluated_at` field (ISO 8601).
+- 缓存只看**总库** `$SKILL_ROOT/.omo/evaluations/{repo}.md`(见路径约定)。不要读当前项目副本判断新鲜度——副本可能滞后。
+- If the 总库文件 exists, read its frontmatter `evaluated_at` field (ISO 8601).
 - If `evaluated_at` is within the last 30 days, present the cached verdict to the user and ask: reuse cached report, or refresh?
+- 若用户选择复用:将总库文件**复制到当前项目副本** `<cwd>/.omo/evaluations/{repo}.md`(若 cwd ≠ `$SKILL_ROOT` 且副本不存在或内容不一致),然后呈现 verdict。
 - If older than 30 days, missing, or the user requests a refresh → proceed to Step 3.
-- Never silently overwrite a cached report without first confirming with the user.
+- Never silently overwrite a 总库 cached report without first confirming with the user.
 
 ### Step 3: 运行脚本
 
@@ -82,7 +97,9 @@ Combine script output with brief web research (community reception on HN / Reddi
 ### Step 5: 生成报告
 
 - Materialise the full evaluation using the format defined in `templates/report-template.md`.
-- Write the file to `.omo/evaluations/{repo}.md` with a frontmatter block containing: `repo`, `owner`, `evaluated_at` (ISO 8601), `weighted_total`, `verdict`.
+- **先写总库** `$SKILL_ROOT/.omo/evaluations/{repo}.md`,frontmatter 包含: `repo`, `owner`, `evaluated_at` (ISO 8601), `weighted_total`, `verdict`。总库是唯一事实源。
+- **再复制到当前项目副本** `<cwd>/.omo/evaluations/{repo}.md`。若 cwd == `$SKILL_ROOT`(在技能源码目录内自评),两路径重合,跳过复制。确保副本目录存在(`mkdir -p <cwd>/.omo/evaluations`)。
+- 副本内容必须与总库**逐字节一致**(直接 `cp`,不要重新渲染)。
 - In the conversation, output a **~200 word summary** containing: repo name, six dimension scores, weighted total, verdict emoji, and the one most-important reason behind the verdict.
 - Do not paste the full report into the conversation — the file is the canonical artifact.
 
